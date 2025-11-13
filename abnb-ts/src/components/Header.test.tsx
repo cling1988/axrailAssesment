@@ -3,26 +3,27 @@ import { render, screen } from '@testing-library/react';
 import Header from './Header';
 
 describe('Header Component', () => {
-  it('should render the Airbnb logo', () => {
+  it('should render the Airbnb logo SVG', () => {
+    const { container } = render(<Header />);
+    
+    // Check if SVG logo is present
+    const svg = container.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg).toHaveAttribute('fill', '#FF385C');
+  });
+
+  it('should render the "Getting started" button', () => {
     render(<Header />);
     
-    // Check if logo text is present
-    const logo = screen.getByText(/airbnb/i);
-    expect(logo).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: /getting started/i });
+    expect(button).toBeInTheDocument();
   });
 
-  it('should render the header element', () => {
+  it('should have fixed positioning classes', () => {
     const { container } = render(<Header />);
     
     const header = container.querySelector('header');
-    expect(header).toBeInTheDocument();
-  });
-
-  it('should have sticky positioning classes', () => {
-    const { container } = render(<Header />);
-    
-    const header = container.querySelector('header');
-    expect(header).toHaveClass('sticky');
+    expect(header).toHaveClass('fixed');
   });
 
   it('should be accessible with proper semantic HTML', () => {

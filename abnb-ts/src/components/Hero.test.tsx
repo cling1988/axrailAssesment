@@ -1,89 +1,74 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import Hero from './Hero';
 
-// Mock the Modal component to simplify testing
+// Mock the Modal component with named export
 vi.mock('./Modal', () => ({
-  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
-    <div data-testid="mock-modal">
-      {isOpen && (
-        <div>
-          <span>Modal is open</span>
-          <button onClick={onClose}>Close</button>
-        </div>
-      )}
-    </div>
+  EstimateModal: () => <div data-testid="mock-estimate-modal">Estimate Modal</div>,
+}));
+
+// Mock the slider component
+vi.mock('./ui/slider', () => ({
+  Slider: ({ defaultValue, onValueChange }: any) => (
+    <input
+      data-testid="mock-slider"
+      type="range"
+      defaultValue={defaultValue[0]}
+      onChange={(e) => onValueChange([parseInt(e.target.value)])}
+    />
   ),
 }));
 
+// Mock the utils
+vi.mock('@/lib/utils', () => ({
+  cn: (...classes: any[]) => classes.filter(Boolean).join(' '),
+}));
+
 describe('Hero Component', () => {
-  it('should render the hero section with heading and description', () => {
+  it('should render the hero section with heading', () => {
     render(<Hero />);
     
-    // Check if main heading is rendered
+    // Check if main heading is rendered with earnings calculation
     const heading = screen.getByRole('heading', { 
-      name: /Airbnb it easily with Airbnb Setup/i 
+      name: /Your home could make/i 
     });
     expect(heading).toBeInTheDocument();
-    
-    // Check if description text is present
-    const description = screen.getByText(/We'll provide you with one-on-one guidance/i);
-    expect(description).toBeInTheDocument();
   });
 
-  it('should render the "Get started" button', () => {
+  it('should display initial calculation with default values', () => {
     render(<Hero />);
     
-    const button = screen.getByRole('button', { name: /Get started/i });
-    expect(button).toBeInTheDocument();
+    // Should show initial calculation (9 nights × RM194)
+    expect(screen.getByText(/9 nights/i)).toBeInTheDocument();
   });
 
   it('should render the map iframe', () => {
     render(<Hero />);
     
-    const iframe = screen.getByTitle(/Google Map/i);
+    const iframe = screen.getByTitle(/Google Map - Kuala Lumpur/i);
     expect(iframe).toBeInTheDocument();
     expect(iframe).toHaveAttribute('src');
   });
 
-  it('should open modal when "Get started" button is clicked', async () => {
-    const user = userEvent.setup();
+  it('should render the EstimateModal component', () => {
     render(<Hero />);
     
-    // Initially modal should not be visible
-    expect(screen.queryByText('Modal is open')).not.toBeInTheDocument();
-    
-    // Click the "Get started" button
-    const button = screen.getByRole('button', { name: /Get started/i });
-    await user.click(button);
-    
-    // Modal should now be visible
-    expect(screen.getByText('Modal is open')).toBeInTheDocument();
+    const modal = screen.getByTestId('mock-estimate-modal');
+    expect(modal).toBeInTheDocument();
   });
 
-  it('should close modal when close is triggered', async () => {
-    const user = userEvent.setup();
+  it('should render the slider component', () => {
     render(<Hero />);
     
-    // Open the modal
-    const openButton = screen.getByRole('button', { name: /Get started/i });
-    await user.click(openButton);
-    
-    expect(screen.getByText('Modal is open')).toBeInTheDocument();
-    
-    // Close the modal
-    const closeButton = screen.getByRole('button', { name: /Close/i });
-    await user.click(closeButton);
-    
-    // Modal should be closed
-    expect(screen.queryByText('Modal is open')).not.toBeInTheDocument();
+    const slider = screen.getByTestId('mock-slider');
+    expect(slider).toBeInTheDocument();
   });
 
-  it('should have proper styling classes on main elements', () => {
+  it('should calculate earnings based on nights and cost', () => {
     render(<Hero />);
     
-    const button = screen.getByRole('button', { name: /Get started/i });
-    expect(button).toHaveClass('bg-gradient-to-r');
+    // Default: 9 nights × RM194 = RM1,746
+    const heading = screen.getByRole('heading');
+    expect(heading.textContent).toContain('1,746');
   });
 });

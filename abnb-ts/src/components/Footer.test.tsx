@@ -33,7 +33,8 @@ describe('Footer Component', () => {
     render(<Footer />);
     
     expect(screen.getByRole('link', { name: /Help Center/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /AirCover/i })).toBeInTheDocument();
+    // Use more specific name to avoid ambiguity with "AirCover for Hosts"
+    expect(screen.getByRole('link', { name: /^AirCover$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Anti-discrimination/i })).toBeInTheDocument();
   });
 
